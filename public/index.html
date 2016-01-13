@@ -1,0 +1,75 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Uszanowanko</title>
+  <meta name="description" content="My Parse App">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script src="build/react.js"></script>
+  <script src="build/react-dom.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+  <script type="text/javascript" src="https://www.parsecdn.com/js/parse-1.5.0.min.js"></script>
+  <script type="text/javascript" src="https://www.parsecdn.com/js/parse-react.js"></script>
+  <script type="text/javascript">
+    Parse.initialize("Lj4OCrsV1meLIIuvVEsxXKyvS3Duz0Qn6DcXQEyt", "SdFWqDCVkZzEa7YoPUVauKpuOiHyOPQUQCoxs6XH");
+  </script>
+</head>
+
+
+<body>
+
+  <div id="main">
+    <h1>Dzień dobry</h1>
+
+    <p>
+      <div id="to-replace" />
+    </p>
+  </div>
+
+  <script type="text/babel">
+    var CommentBlock = React.createClass({
+      mixins: [ParseReact.Mixin],
+      getInitialState: function() {
+        return {text: ''};
+      },
+      onChange: function(e) {
+        this.setState({text: e.target.value});
+      },
+      handleSubmit: function(e) {
+        e.preventDefault();
+        ParseReact.Mutation.Create('TestObject', {
+          foo: this.state.text
+        }).dispatch();
+        this.setState({text: ''});
+      },
+      observe: function() {
+        return {
+          testObjects: (new Parse.Query('TestObject')).ascending('createdAt')
+        };
+      },
+      render: function() {
+        return (
+          <div>
+            <h1>TODO</h1>
+            <ul>
+              {this.data.testObjects.map(function(item) {
+                return <li key={item.id}>{item.foo}</li>
+              })}
+            </ul>
+            <form onSubmit={this.handleSubmit}>
+              <input onChange={this.onChange} value={this.state.text} />
+              <button>Add</button>
+            </form>
+          </div>
+        );
+      }
+    });
+    ReactDOM.render(<CommentBlock/>, document.getElementById('to-replace'));
+
+  </script>
+</body>
+
+</html>

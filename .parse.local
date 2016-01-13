@@ -1,0 +1,10 @@
+{
+  "applications": {
+    "_default": {
+      "link": "witam"
+    },
+    "witam": {
+      "applicationId": "Lj4OCrsV1meLIIuvVEsxXKyvS3Duz0Qn6DcXQEyt"
+    }
+  }
+}
