@@ -33,7 +33,7 @@
       render: function() {
         return (
           <div>
-            <NavBar />
+            <NavBar user={this.props.user} onLogout={this.props.onLogout} />
             <TurboList />
           </div>
         )
@@ -43,21 +43,27 @@
     var App = React.createClass({
       getInitialState: function() {
         return {
-          user: null,
+          user: Parse.User.current(),
           alert: null
         };
       },
-      onUserLogged: function(user) {
-        this.setState({user: user});
+      updateUser: function() {
+        this.setState({user: Parse.User.current()});
       },
       onUserNotLogged: function(alert) {
         this.setState({alert: alert});
       },
+      onLogout: function() {
+        Parse.User.logOut();
+        this.updateUser();
+      },
       render: function() {
-        var everything = (this.state.user) ? <AdminPanel user={this.state.user} /> : <LoginForm onSuccess={this.onUserLogged} onFailure={this.onUserNotLogged} alert={this.state.alert} />;
+        var whenLogged = <AdminPanel onLogout={this.onLogout} user={this.state.user} />;
+        var whenNotLogged = <LoginForm onSuccess={this.updateUser} onFailure={this.onUserNotLogged} alert={this.state.alert} />;
+        var app = (this.state.user) ? whenLogged : whenNotLogged;
         return (
           <div>
-            {everything}
+            {app}
           </div>
         );
       }
@@ -87,7 +93,7 @@
 
         Parse.User.logIn(this.state.email, this.state.password, {
           success: function(user) {
-            onSuccess(user);
+            onSuccess();
           },
           error: function(user, error) {
             onFailure(error.message);
@@ -117,27 +123,26 @@
 
     var NavBar = React.createClass({
       render: function() {
-        var item = this.props.item;
         return (
           <nav className="navbar navbar-inverse navbar-fixed-top">
-             <div className="container">
-               <div className="navbar-header">
-                 <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                   <span className="sr-only">Toggle navigation</span>
-                   <span className="icon-bar"></span>
-                   <span className="icon-bar"></span>
-                   <span className="icon-bar"></span>
-                 </button>
-                 <a className="navbar-brand" href="#">Panel</a>
-               </div>
-               <div id="navbar" className="collapse navbar-collapse">
-                 <ul className="nav navbar-nav">
-                   <li className="active"><a href="#">TODO</a></li>
-                   <li><a href="#">Shops</a></li>
-                 </ul>
-               </div>
-             </div>
-           </nav>
+            <div className="container">
+              <div className="navbar-header">
+                <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                  <span className="sr-only">Toggle navigation</span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
+                </button>
+                <a className="navbar-brand" href="#">Panel</a>
+              </div>
+              <div id="navbar" className="collapse navbar-collapse">
+                <ul className="nav navbar-nav">
+                  <li><a onClick={this.props.onLogout}>Logout ({this.props.user.attributes.username})</a></li>
+                  <li className="active"><a>TODO</a></li>
+                </ul>
+              </div>
+            </div>
+          </nav>
         )
       }
     });
@@ -211,8 +216,6 @@
         );
       }
     });
-
-
 
     ReactDOM.render(<App />, document.getElementById('to-replace'));
   </script>
