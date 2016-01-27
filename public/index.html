@@ -13,7 +13,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
     <script type="text/javascript" src="https://www.parsecdn.com/js/parse-1.5.0.min.js"></script>
     <script type="text/javascript" src="https://www.parsecdn.com/js/parse-react.js"></script>
+    
     <script type="text/javascript" src="js/init.js"></script>
+    <script type="text/javascript" src="js/loginForm.js"></script>
+    <script type="text/javascript" src="js/turboItem.js"></script>
+    <script type="text/javascript" src="js/turboList.js"></script>
+    <script type="text/javascript" src="js/navBar.js"></script>
+    <script type="text/javascript" src="js/adminPanel.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
 
   </head>
 
@@ -29,194 +36,6 @@
   </body>
 
   <script type="text/babel">
-    var AdminPanel = React.createClass({
-      render: function() {
-        return (
-          <div>
-            <NavBar user={this.props.user} onLogout={this.props.onLogout} />
-            <TurboList />
-          </div>
-        )
-      }
-    });
-
-    var App = React.createClass({
-      getInitialState: function() {
-        return {
-          user: Parse.User.current(),
-          alert: null
-        };
-      },
-      updateUser: function() {
-        this.setState({user: Parse.User.current()});
-      },
-      onUserNotLogged: function(alert) {
-        this.setState({alert: alert});
-      },
-      onLogout: function() {
-        Parse.User.logOut();
-        this.updateUser();
-      },
-      render: function() {
-        var whenLogged = <AdminPanel onLogout={this.onLogout} user={this.state.user} />;
-        var whenNotLogged = <LoginForm onSuccess={this.updateUser} onFailure={this.onUserNotLogged} alert={this.state.alert} />;
-        var app = (this.state.user) ? whenLogged : whenNotLogged;
-        return (
-          <div>
-            {app}
-          </div>
-        );
-      }
-    });
-
-    var LoginForm = React.createClass({
-      getInitialState: function() {
-        return {
-          email: '',
-          password: ''
-        };
-      },
-      onEmailChange: function(e) {
-        this.setState({
-          email: e.target.value
-        })
-      },
-      onPasswordChange: function(e) {
-        this.setState({
-          password: e.target.value
-        })
-      },
-      onSubmit: function(e) {
-        e.preventDefault();
-        var onSuccess = this.props.onSuccess;
-        var onFailure = this.props.onFailure;
-
-        Parse.User.logIn(this.state.email, this.state.password, {
-          success: function(user) {
-            onSuccess();
-          },
-          error: function(user, error) {
-            onFailure(error.message);
-          }
-        });
-      },
-      render: function() {
-        var item = this.props.item;
-        if (this.props.alert) {
-          var alert = <div className="alert alert-danger" role="alert">{this.props.alert}</div>
-        }
-        return (
-          <div>
-            {alert}
-            <form className="form-signin" onSubmit={this.onSubmit} >
-              <h2 className="form-signin-heading">Please sign in</h2>
-              <label htmlFor="inputEmail" className="sr-only">Email address</label>
-              <input type="email" id="inputEmail" className="form-control" placeholder="Email address" required autofocus onChange={this.onEmailChange} />
-              <label htmlFor="inputPassword" className="sr-only">Password</label>
-              <input type="password" id="inputPassword" className="form-control" placeholder="Password" required onChange={this.onPasswordChange} />
-              <button className="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-            </form>
-          </div>
-        )
-      }
-    });
-
-    var NavBar = React.createClass({
-      render: function() {
-        return (
-          <nav className="navbar navbar-inverse navbar-fixed-top">
-            <div className="container">
-              <div className="navbar-header">
-                <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                  <span className="sr-only">Toggle navigation</span>
-                  <span className="icon-bar"></span>
-                  <span className="icon-bar"></span>
-                  <span className="icon-bar"></span>
-                </button>
-                <a className="navbar-brand" href="#">Panel</a>
-              </div>
-              <div id="navbar" className="collapse navbar-collapse">
-                <ul className="nav navbar-nav">
-                  <li><a onClick={this.props.onLogout}>Logout ({this.props.user.attributes.username})</a></li>
-                  <li className="active"><a>TODO</a></li>
-                </ul>
-              </div>
-            </div>
-          </nav>
-        )
-      }
-    });
-
-    var TurboItem = React.createClass({
-      onRemove: function(e) {
-        ParseReact.Mutation.Destroy(this.props.item).dispatch();
-      },
-      render: function() {
-        var item = this.props.item;
-        return (
-          <tr key={item.id}>
-            <td>
-              {item.foo}
-            </td>
-            <td>
-              <a onClick={this.onRemove}>
-                <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
-              </a>
-            </td>
-          </tr>
-        )
-      }
-    });
-
-    var TurboList = React.createClass({
-      mixins: [ParseReact.Mixin],
-      getInitialState: function() {
-        return {text: ''};
-      },
-      onChange: function(e) {
-        this.setState({text: e.target.value});
-      },
-      handleSubmit: function(e) {
-        e.preventDefault();
-        ParseReact.Mutation.Create('TestObject', {
-          foo: this.state.text
-        }).dispatch();
-        this.setState({text: ''});
-      },
-      observe: function() {
-        return {
-          testObjects: (new Parse.Query('TestObject')).ascending('createdAt')
-        };
-      },
-      render: function() {
-        var onRemove = this.onRemove;
-        return (
-          <div>
-            <form className="form-inline" onSubmit={this.handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="input-task">Add task</label>
-                <input type="text" className="form-control" id="input-task" placeholder="Do stuff" onChange={this.onChange} value={this.state.text} />
-              </div>
-              <button type="submit" className="btn btn-primary">Add</button>
-            </form>
-            <table className="table table-striped table-bordered table-hover table-condensed">
-            <thead>
-              <tr>
-                <th>TODO</th>
-                <th>Remove</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.data.testObjects.map(function(item, index) {
-                return <TurboItem item={item} key={item.id} />;
-              })}
-            </tbody>
-            </table>
-          </div>
-        );
-      }
-    });
-
     ReactDOM.render(<App />, document.getElementById('to-replace'));
   </script>
 </html>
